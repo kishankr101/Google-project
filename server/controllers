@@ -1,24 +1,29 @@
-const jwt = require('jsonwebtoken');
+const Room = require('../models/Room');
 
-exports.protect = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ message: "Not authorized" });
-
+exports.getRooms = async (req, res) => {
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
+        const { location, fromDate, toDate } = req.query;
+        let query = {};
+        
+        if (location) query.location = { $regex: location, $options: 'i' };
+
+        const rooms = await Room.find(query);
+        
+        // Filter out unavailable rooms based on date overlap
+        if (fromDate && toDate) {
+            const checkIn = new Date(fromDate);
+            const checkOut = new Date(toDate);
+            
+            const availableRooms = rooms.filter(room => {
+                return!room.bookings.some(b => 
+                    (checkIn < new Date(b.to) && checkOut > new Date(b.from))
+                );
+            });
+            return res.json(availableRooms);
+        }
+
+        res.json(rooms);
     } catch (err) {
-        res.status(403).json({ message: "Invalid token" });
+        res.status(500).json({ message: err.message });
     }
 };
-
-exports.authorize = (...roles) => {
-    return (req, res, next) => {
-        if (!roles.includes(req.user.role)) {
-            return res.status(403).json({ message: "Access denied" });
-        }
-        next();
-    };
-};
-
