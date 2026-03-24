@@ -1,1 +1,25 @@
+import React, { createContext, useState, useEffect } from 'react';
+import axios from 'axios';
+
+export const RoomContext = createContext();
+
+export const RoomProvider = ({ children }) => {
+    const = useState();
+    const [loading, setLoading] = useState(true);
+
+    const fetchRooms = async (params = {}) => {
+        setLoading(true);
+        const res = await axios.get('/api/rooms', { params });
+        setRooms(res.data);
+        setLoading(false);
+    };
+
+    useEffect(() => { fetchRooms(); },);
+
+    return (
+        <RoomContext.Provider value={{ rooms, loading, fetchRooms }}>
+            {children}
+        </RoomContext.Provider>
+    );
+};
 
