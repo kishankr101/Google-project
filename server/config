@@ -1,1 +1,15 @@
+const mongoose = require('mongoose');
+
+const roomSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    location: { type: String, required: true },
+    price: { type: Number, required: true }, // Store as integer for precision [12]
+    images:,
+    amenities:,
+    maxGuests: { type: Number, default: 2 },
+    bookings:, // Reference bookings for conflict checks [14]
+    rating: { type: Number, default: 4.5 }
+}, { timestamps: true });
+
+module.exports = mongoose.model('Room', roomSchema);
 
